@@ -3,6 +3,7 @@
 import {usePathname, useRouter, useSearchParams} from "next/navigation";
 import {useEffect, useState} from "react";
 import Image from "next/image";
+import {formUrlQuery, removeKeysFromUrlQuery} from "@jsmastery/utils";
 
 const SearchInput = () => {
     const pathname = usePathname();
@@ -10,22 +11,29 @@ const SearchInput = () => {
     const searchParams = useSearchParams();
     const query = searchParams.get('topic') || '';
 
-    const [searchQuery, setSearchQuery] = useState(query);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         const delayDebounceFn = setTimeout(() => {
-            const params = new URLSearchParams(searchParams.toString());
-
             if(searchQuery) {
-                params.set('topic', searchQuery);
+                const newUrl = formUrlQuery({
+                    params: searchParams.toString(),
+                    key: "topic",
+                    value: searchQuery,
+                });
+
+                router.push(newUrl, { scroll: false });
             } else {
-                params.delete('topic');
+                if(pathname === '/companions') {
+                    const newUrl = removeKeysFromUrlQuery({
+                        params: searchParams.toString(),
+                        keysToRemove: ["topic"],
+                    });
+
+                    router.push(newUrl, { scroll: false });
+                }
             }
-
-            router.push(`${pathname}?${params.toString()}`, { scroll: false });
-        }, 500);
-
-        return () => clearTimeout(delayDebounceFn);
+        }, 500)
     }, [searchQuery, router, searchParams, pathname]);
 
     return (
@@ -40,5 +48,4 @@ const SearchInput = () => {
         </div>
     )
 }
-
 export default SearchInput
