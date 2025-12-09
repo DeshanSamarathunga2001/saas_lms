@@ -65,3 +65,17 @@ export const addToSessionHistory = async (companionId: string) => {
 
     return data;
 }
+
+export const addToSessionHistory = async (companionId: string) => {
+    const { userId } = await auth();
+    const supabase = createSupabaseClient();
+    const { data, error } = await supabase.from('session_history')
+        .insert({
+            companion_id: companionId,
+            user_id: userId,
+        })
+
+    if(error) throw new Error(error.message);
+
+    return data;
+}
